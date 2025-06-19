@@ -49,6 +49,7 @@ call plug#begin("~/.vim/plugged")
  Plug 'kien/ctrlp.vim'
  Plug 'neoclide/coc.nvim', {'branch': 'release'}
  Plug 'skywind3000/vim-quickui'
+ Plug 'sakhnik/nvim-gdb'
 call plug#end()
 
 colorscheme everforest
@@ -67,6 +68,8 @@ let g:NERDTreeShowHidden=1
 
 let g:ctrlp_show_hidden = 1
 
+let g:python3_host_prog = '/usr/bin/python3'
+
 " Guziki
 let g:ctrlp_prompt_mappings = {
     \ 'AcceptSelection("e")': ['<cr>', '<2-LeftMouse>'],
@@ -84,6 +87,11 @@ nnoremap <C-Left> :tabprevious<CR>
 nnoremap <C-Right> :tabnext<CR>
 nnoremap <C-j> :tabprevious<CR>
 nnoremap <C-k> :tabnext<CR>
+
+nnoremap <A-Left> :-tabmove<CR>
+nnoremap <A-Right> :+tabmove<CR>
+nnoremap <A-j> :-tabmove<CR>
+nnoremap <A-k> :+tabmove<CR>
 
 nnoremap ,/ :call nerdcommenter#Comment(0,"toggle")<CR>
 vnoremap ,/ :call nerdcommenter#Comment(0,"toggle")<CR>
