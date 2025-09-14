@@ -49,7 +49,11 @@ call plug#begin("~/.vim/plugged")
  Plug 'kien/ctrlp.vim'
  Plug 'neoclide/coc.nvim', {'branch': 'release'}
  Plug 'skywind3000/vim-quickui'
- Plug 'sakhnik/nvim-gdb'
+ " debug
+ Plug 'mfussenegger/nvim-dap'
+ Plug 'nvim-neotest/nvim-nio'
+ Plug 'rcarriga/nvim-dap-ui'
+ Plug 'theHamsta/nvim-dap-virtual-text'
 call plug#end()
 
 colorscheme everforest
@@ -162,3 +166,5 @@ let g:context_menu_k = [
         \ ]
 
 nnoremap <silent>K :call quickui#tools#clever_context('k', g:context_menu_k, {})<cr>
+
+lua require('dap_setup')
