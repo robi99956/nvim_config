@@ -21,6 +21,8 @@ filetype plugin on
 set cursorline
 set ttyfast
 
+let mapleader = " "
+
 augroup neovim_terminal
     autocmd!
     " Enter Terminal-mode (insert) automatically
@@ -49,6 +51,7 @@ call plug#begin("~/.vim/plugged")
  Plug 'kien/ctrlp.vim'
  Plug 'neoclide/coc.nvim', {'branch': 'release'}
  Plug 'skywind3000/vim-quickui'
+ Plug 'nvim-tree/nvim-web-devicons'
  " debug
  Plug 'mfussenegger/nvim-dap'
  Plug 'nvim-neotest/nvim-nio'
