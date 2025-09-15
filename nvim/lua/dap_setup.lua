@@ -63,10 +63,11 @@ dap.adapters.cpp_local = {
   args = { '--interpreter=dap' },
 }
 
-dap.adapters.cpp_remote = {
+dap.adapters.cppdbg = {
+  id = 'cppdbg',
   type = 'executable',
-  command = 'gdb',
-  args = { '--interpreter=dap' },
+  command = '/home/robert/workspace/vscode-cpptools/extension/debugAdapters/bin/OpenDebugAD7',
+  args = {},
 }
 
 dap.configurations.cpp = {
@@ -79,20 +80,15 @@ dap.configurations.cpp = {
     stopOnEntry = false,
   },
   {
-    name = "Remote Debug",
-    type = "cpp_remote",       -- matches adapter
-    request = "launch",
-    program = detect_executable,
+    name = 'Remote server',
+    type = 'cppdbg',
+    request = 'launch',
+    MIMode = 'gdb',
+    miDebuggerServerAddress = 'localhost:2331',
+    miDebuggerPath = 'arm-none-eabi-gdb',
     cwd = '${workspaceFolder}',
-    stopOnEntry = false,
-    setupCommands = {
-      {
-        text = "target remote localhost:3333",  -- adjust port
-        description = "Connect to remote gdbserver",
-        ignoreFailures = false
-      }
-    }
-  }
+    program = detect_executable,
+  },
 }
 
 dap.configurations.c = dap.configurations.cpp
