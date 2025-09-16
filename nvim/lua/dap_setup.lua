@@ -1,5 +1,7 @@
 local dap = require("dap")
 local dapui = require("dapui")
+local dapvirtualtext = require("nvim-dap-virtual-text")
+local widgets = require('dap.ui.widgets')
 dap.set_log_level('TRACE')
 
 function detect_executable()
@@ -97,7 +99,6 @@ dap.configurations.rust = dap.configurations.cpp
 -- ---------------------------
 -- UI and virtual text
 -- ---------------------------
-require("nvim-dap-virtual-text").setup()
 dapui.setup({
   layouts = {
     {
@@ -148,32 +149,115 @@ end)
 -- Debug flow 
 -- ---------------------------
 local opts = { noremap = true, silent = true }
-widgets = require('dap.ui.widgets')
 
--- Stepping and debugging with single keys + modifiers
 vim.keymap.set('n', '<C-n>', dap.step_over, opts)   -- Ctrl+n = next (step over)
 vim.keymap.set('n', '<C-i>', dap.step_into, opts)   -- Ctrl+i = step into
 vim.keymap.set('n', '<C-f>', dap.step_out, opts)    -- Ctrl+o = step out (finish)
 vim.keymap.set('n', '<C-c>', dap.continue, opts)    -- Ctrl+c = continue
 vim.keymap.set('n', '<C-b>', dap.toggle_breakpoint, opts) -- Ctrl+b = toggle breakpoint
 vim.keymap.set('n', '<C-s>', dap.pause, opts)       -- Ctrl+p = pause (stop)
-vim.keymap.set('n', '<C-x>', function()
+
+function open_hover_and_remap()
   widgets.hover()
-end, { desc = 'DAP: Show value under cursor' })
+  vim.keymap.set('n', '<C-x>', close_window_and_remap, { desc = 'DAP: close popup window' })
+end
+
+function close_window_and_remap()
+  vim.cmd('close')
+  vim.keymap.set('n', '<C-x>', open_hover_and_remap, { desc = 'DAP: Show value under cursor' })
+end
+
+vim.keymap.set('n', '<C-x>', open_hover_and_remap, { desc = 'DAP: Show value under cursor' })
+
+local function detect_expression_under_cursor()
+  local line = vim.api.nvim_get_current_line()
+  local col = vim.fn.col(".") -- 1-indexed
+  if col == 0 then return nil end
+  local len = #line
+  if len == 0 then return nil end
+
+  -- Allowed single characters in an expression. We include ., :, -, >, [, ], (, ), *, &, digits, letters, underscore
+  local allowed_char_class = "[%w_%.:%-%>%[%]%(%)*&]"
+
+  -- expand left
+  local l = col
+  while l > 1 do
+    local c = line:sub(l - 1, l - 1)
+    if c:match(allowed_char_class) then
+      l = l - 1
+    else
+      break
+    end
+  end
+
+  -- expand right
+  local r = col
+  while r <= len do
+    local c = line:sub(r, r)
+    if c:match(allowed_char_class) then
+      r = r + 1
+    else
+      break
+    end
+  end
+
+  local expr = line:sub(l, r - 1)
+  expr = expr:gsub("^%s+", ""):gsub("%s+$", "")
+
+  -- cleanup common trailing punctuation (semicolon/comma)
+  expr = expr:gsub("[;,]+$", "")
+
+  -- If expr is just digits or empty, treat as failure
+  if expr == "" or expr:match("^%d+$") then
+    return nil
+  end
+
+  -- If expression starts/ends with unmatched punctuation, try to trim
+  expr = expr:gsub("^%(", ""):gsub("%)$", "") -- simple parentheses trim
+  return expr
+end
+
+function add_watch_under_cursor()
+  local expr = detect_expression_under_cursor()
+  if not expr or expr == "" then
+    -- fallback: ask user with prefilled <cword>
+    local fallback = vim.fn.expand("<cword>")
+    expr = vim.fn.input("Add watch (expression): ", fallback)
+    if not expr or expr == "" then
+      vim.notify("No expression provided, aborting.", vim.log.levels.WARN)
+      return
+    end
+  end
+
+  -- Add to dap-ui watches, guarded to avoid errors on old/new versions
+  local ok, _ = pcall(function()
+    if not dapui.elements or not dapui.elements.watches or not dapui.elements.watches.add then
+      error("DAP UI watches API not available")
+    end
+    dapui.elements.watches.add(expr)
+  end)
+
+  if ok then
+    vim.notify("Added to DAP Watches: " .. expr, vim.log.levels.INFO)
+  else
+    vim.notify("Failed to add watch: " .. expr, vim.log.levels.ERROR)
+  end
+end
+
+vim.keymap.set('n', '<C-a>', add_watch_under_cursor, opts)
 
 -- ---------------------------
 -- Start/stop commands
 -- ---------------------------
 vim.api.nvim_create_user_command('DebugLocal', function()
-  require('dap').run(dap.configurations.cpp[1])
+  dap.run(dap.configurations.cpp[1])
 end, {})
 
 vim.api.nvim_create_user_command('DebugRemote', function()
-  require('dap').run(dap.configurations.cpp[2])
+  dap.run(dap.configurations.cpp[2])
 end, {})
 
 vim.api.nvim_create_user_command('DebugStop', function()
   dap.terminate()
   dapui.close()
 end, {})
-
