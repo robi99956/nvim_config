@@ -66,7 +66,7 @@ dap.adapters.cpp_local = {
 dap.adapters.cppdbg = {
   id = 'cppdbg',
   type = 'executable',
-  command = '/home/robert/workspace/vscode-cpptools/extension/debugAdapters/bin/OpenDebugAD7',
+  command = '/home/robert/workspace/cpptools/extension/debugAdapters/bin/OpenDebugAD7',
   args = {},
 }
 
@@ -85,7 +85,7 @@ dap.configurations.cpp = {
     request = 'launch',
     MIMode = 'gdb',
     miDebuggerServerAddress = 'localhost:2331',
-    miDebuggerPath = 'arm-none-eabi-gdb',
+    miDebuggerPath = '/home/robert/workspace/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-gdb',
     cwd = '${workspaceFolder}',
     program = detect_executable,
   },
@@ -97,57 +97,6 @@ dap.configurations.rust = dap.configurations.cpp
 -- ---------------------------
 -- UI and virtual text
 -- ---------------------------
---local _cheat = { buf = nil, win = nil }
---
---local function open_cheatsheet()
---  if _cheat.win and vim.api.nvim_win_is_valid(_cheat.win) then return end
---
---  if not _cheat.buf or not vim.api.nvim_buf_is_valid(_cheat.buf) then
---    _cheat.buf = vim.api.nvim_create_buf(false, true) -- scratch, listed=false
---    vim.api.nvim_buf_set_lines(_cheat.buf, 0, -1, false, {
---      "F5:Continue  |  F6:Pause  |  F10:Step Over  |  F11:Step Into  |  F12:Step Out"
---    })
---    vim.api.nvim_buf_set_option(_cheat.buf, "bufhidden", "wipe")
---    vim.api.nvim_buf_set_option(_cheat.buf, "modifiable", false)
---  end
---
---  local width = math.min(80, vim.o.columns - 4) -- avoid exceeding terminal width
---  local height = 1
---  local opts = {
---    relative = "editor",
---    row = 0,            -- 0-based; adjust to move up/down
---    col = 0,            -- 0-based; adjust to move left/right
---    width = width,
---    height = height,
---    style = "minimal",
---    focusable = false,
---    border = "none",
---  }
---
---  _cheat.win = vim.api.nvim_open_win(_cheat.buf, false, opts)
---  vim.api.nvim_win_set_option(_cheat.win, "wrap", false)
---  vim.api.nvim_win_set_option(_cheat.win, "winhl", "Normal:Normal") -- avoid weird highlighting
---end
---
---local function close_cheatsheet()
---  if _cheat.win and vim.api.nvim_win_is_valid(_cheat.win) then
---    pcall(vim.api.nvim_win_close, _cheat.win, true)
---  end
---  _cheat.win = nil
---  -- keep buffer so reopening is fast; it will be wiped by bufhidden if closed permanently
---end
---
----- Show on debug start, hide on end/exit
---dap.listeners.after.event_initialized["my_cheatsheet"] = function()
---  open_cheatsheet()
---end
---dap.listeners.before.event_terminated["my_cheatsheet"] = function()
---  close_cheatsheet()
---end
---dap.listeners.before.event_exited["my_cheatsheet"] = function()
---  close_cheatsheet()
---end
-
 require("nvim-dap-virtual-text").setup()
 dapui.setup({
   layouts = {
@@ -203,10 +152,10 @@ local opts = { noremap = true, silent = true }
 -- Stepping and debugging with single keys + modifiers
 vim.keymap.set('n', '<C-n>', dap.step_over, opts)   -- Ctrl+n = next (step over)
 vim.keymap.set('n', '<C-i>', dap.step_into, opts)   -- Ctrl+i = step into
-vim.keymap.set('n', '<C-o>', dap.step_out, opts)    -- Ctrl+o = step out
+vim.keymap.set('n', '<C-f>', dap.step_out, opts)    -- Ctrl+o = step out (finish)
 vim.keymap.set('n', '<C-c>', dap.continue, opts)    -- Ctrl+c = continue
 vim.keymap.set('n', '<C-b>', dap.toggle_breakpoint, opts) -- Ctrl+b = toggle breakpoint
-vim.keymap.set('n', '<C-s>', dap.pause, opts)       -- Ctrl+p = pause
+vim.keymap.set('n', '<C-s>', dap.pause, opts)       -- Ctrl+p = pause (stop)
 
 -- ---------------------------
 -- Start/stop commands
@@ -221,5 +170,6 @@ end, {})
 
 vim.api.nvim_create_user_command('DebugStop', function()
   dap.terminate()
+  dapui.close()
 end, {})
 
