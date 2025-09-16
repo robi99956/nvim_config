@@ -148,6 +148,7 @@ end)
 -- Debug flow 
 -- ---------------------------
 local opts = { noremap = true, silent = true }
+widgets = require('dap.ui.widgets')
 
 -- Stepping and debugging with single keys + modifiers
 vim.keymap.set('n', '<C-n>', dap.step_over, opts)   -- Ctrl+n = next (step over)
@@ -156,6 +157,9 @@ vim.keymap.set('n', '<C-f>', dap.step_out, opts)    -- Ctrl+o = step out (finish
 vim.keymap.set('n', '<C-c>', dap.continue, opts)    -- Ctrl+c = continue
 vim.keymap.set('n', '<C-b>', dap.toggle_breakpoint, opts) -- Ctrl+b = toggle breakpoint
 vim.keymap.set('n', '<C-s>', dap.pause, opts)       -- Ctrl+p = pause (stop)
+vim.keymap.set('n', '<C-x>', function()
+  widgets.hover()
+end, { desc = 'DAP: Show value under cursor' })
 
 -- ---------------------------
 -- Start/stop commands
